@@ -1,0 +1,180 @@
+from datetime import datetime
+import csv
+import os
+import re
+
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret")
+ATTENDANCE_FILE = os.path.join(os.path.dirname(__file__), "attendance_log.csv")
+
+
+# ==================== EMAIL VALIDATION ====================
+def is_valid_email(email):
+    """Validate email format using regex."""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+
+# ==================== USER DATABASE ====================
+# Example enterprise user directory. In production, move this into a database.
+USERS = {
+    "alice": {
+        "name": "Alice Morgan",
+        "email": "alice.morgan@company.com",
+        "role": "employee",
+        "password_hash": generate_password_hash("Passw0rd!")
+    },
+    "bob": {
+        "name": "Bob Chen",
+        "email": "bob.chen@company.com",
+        "role": "manager",
+        "password_hash": generate_password_hash("Secure123$")
+    },
+    "admin": {
+        "name": "Enterprise Admin",
+        "email": "admin@company.com",
+        "role": "admin",
+        "password_hash": generate_password_hash("Admin!2026")
+    }
+}
+
+# Email-to-username lookup for login by email
+EMAIL_TO_USERNAME = {user["email"].lower(): username for username, user in USERS.items()}
+
+
+def init_attendance_file():
+    if not os.path.exists(ATTENDANCE_FILE):
+        with open(ATTENDANCE_FILE, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["timestamp", "username", "role", "event"])
+
+
+def append_attendance(username: str, role: str, event: str):
+    init_attendance_file()
+    with open(ATTENDANCE_FILE, "a", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([datetime.utcnow().isoformat(), username, role, event])
+
+
+def read_attendance(limit: int = 20):
+    init_attendance_file()
+    with open(ATTENDANCE_FILE, "r", newline="", encoding="utf-8") as csvfile:
+        reader = list(csv.DictReader(csvfile))
+        return reader[-limit:]
+
+
+def login_required(view_func):
+    def wrapper(*args, **kwargs):
+        if "username" not in session:
+            flash("Please log in to access this page.", "warning")
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+
+    wrapper.__name__ = view_func.__name__
+    return wrapper
+
+
+@app.route("/")
+def home():
+    if "username" in session:
+        return redirect(url_for("dashboard"))
+    return redirect(url_for("login"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email_or_username = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        # Clear error flags
+        email_error = None
+        password_error = None
+
+        # Validate email format
+        if not email_or_username:
+            email_error = "Email is required."
+        elif not is_valid_email(email_or_username):
+            email_error = "Please enter a valid email address."
+
+        if not password:
+            password_error = "Password is required."
+
+        if email_error or password_error:
+            if email_error:
+                flash(email_error, "danger")
+            if password_error:
+                flash(password_error, "danger")
+            return render_template("login.html", email=email_or_username)
+
+        # Look up user by email
+        username = EMAIL_TO_USERNAME.get(email_or_username)
+        if not username:
+            flash("Email address not found. Please check and try again.", "danger")
+            return render_template("login.html", email=email_or_username)
+
+        user = USERS.get(username)
+        if user and check_password_hash(user["password_hash"], password):
+            session["username"] = username
+            session["display_name"] = user["name"]
+            session["email"] = user["email"]
+            session["role"] = user["role"]
+
+            append_attendance(username, user["role"], "login")
+            flash(f"Welcome back, {user['name']}!", "success")
+            return redirect(url_for("dashboard"))
+
+        flash("Invalid email or password. Please try again.", "danger")
+        return render_template("login.html", email=email_or_username)
+
+    return render_template("login.html")
+
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    last_events = read_attendance(limit=10)
+    return render_template(
+        "dashboard.html",
+        username=session["username"],
+        display_name=session["display_name"],
+        role=session["role"],
+        attendance=last_events,
+    )
+
+
+@app.route("/record", methods=["POST"])
+@login_required
+def record_attendance():
+    event = request.form.get("event", "check-in").strip()
+    append_attendance(session["username"], session["role"], event)
+    flash("Attendance recorded successfully.", "success")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/admin")
+@login_required
+def admin_panel():
+    if session.get("role") != "admin":
+        flash("Admin access required.", "danger")
+        return redirect(url_for("dashboard"))
+
+    attendance = read_attendance(limit=100)
+    return render_template("attendance.html", attendance=attendance)
+
+
+@app.route("/logout")
+def logout():
+    if "username" in session:
+        append_attendance(session["username"], session.get("role", "unknown"), "logout")
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
+
+
+if __name__ == "__main__":
+    init_attendance_file()
+    app.run(host="0.0.0.0", port=5000, debug=True)

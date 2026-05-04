@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Attendance Audit | AiSPRY Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .navbar {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        border: none;
+        border-radius: 10px 10px 0 0;
+        font-weight: 600;
+        padding: 1.5rem;
+        font-size: 1.1rem;
+      }
+
+      .page-title {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 1.05rem;
+      }
+
+      .table {
+        margin-bottom: 0;
+      }
+
+      .table thead th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+      }
+
+      .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+      }
+
+      .table tbody tr {
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:last-child {
+        border-bottom: none;
+      }
+
+      .event-badge {
+        display: inline-block;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+
+      .event-check-in {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .event-check-out {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .event-meeting-start {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .event-meeting-end {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+
+      .event-login {
+        background-color: #cce5ff;
+        color: #004085;
+      }
+
+      .event-logout {
+        background-color: #f5c6cb;
+        color: #721c24;
+      }
+
+      .role-badge {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .role-employee {
+        background-color: #e7f3ff;
+        color: #004085;
+      }
+
+      .role-manager {
+        background-color: #e2e3e5;
+        color: #383d41;
+      }
+
+      .role-admin {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .timestamp {
+        color: #666;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+      }
+
+      .username {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #999;
+      }
+
+      .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">🏢 AiSPRY Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+            </li>
+            <li class="nav-item ms-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid py-5">
+      <div class="row mb-4">
+        <div class="col-12">
+          <h1 class="page-title">🔍 Attendance Audit Report</h1>
+          <p class="subtitle">Complete log of all employee attendance and system events for compliance review</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              📋 All Attendance Records
+            </div>
+            <div class="card-body p-0">
+              {% if attendance %}
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>⏰ Timestamp (UTC)</th>
+                        <th>👤 Username</th>
+                        <th>🎯 Role</th>
+                        <th>📌 Event</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for row in attendance %}
+                        <tr>
+                          <td>
+                            <span class="timestamp">{{ row.timestamp[:19].replace('T', ' ') }}</span>
+                          </td>
+                          <td>
+                            <span class="username">{{ row.username }}</span>
+                          </td>
+                          <td>
+                            <span class="role-badge role-{{ row.role }}">{{ row.role }}</span>
+                          </td>
+                          <td>
+                            <span class="event-badge event-{{ row.event|replace(' ', '-')|replace('_', '-') }}">
+                              {{ row.event }}
+                            </span>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="empty-state">
+                  <div class="empty-state-icon">📭</div>
+                  <h5>No Attendance Records</h5>
+                  <p>There are no attendance records available for review at this time.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <small class="text-muted">
+            <strong>Note:</strong> This audit report shows the last 100 attendance records. 
+            For detailed historical data, please contact your system administrator.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

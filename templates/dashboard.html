@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard | AiSPRY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .navbar {
+        background: var(--primary-gradient);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px 10px 0 0;
+        font-weight: 600;
+        padding: 1.25rem;
+      }
+
+      .welcome-card {
+        background: var(--primary-gradient);
+        color: white;
+      }
+
+      .welcome-card .card-body {
+        padding: 2rem;
+      }
+
+      .welcome-card .card-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .badge-role {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 0.75rem;
+        transition: border-color 0.3s;
+      }
+
+      .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border: none;
+        font-weight: 600;
+        transition: transform 0.2s;
+      }
+
+      .btn-success:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #0e7d6f 0%, #2bc965 100%);
+      }
+
+      .table {
+        margin-bottom: 0;
+      }
+
+      .table thead th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+      }
+
+      .table tbody tr {
+        transition: background-color 0.2s;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f8f9fa;
+      }
+
+      .event-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .event-check-in {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .event-check-out {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .event-meeting-start {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .event-meeting-end {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+
+      .event-login {
+        background-color: #cce5ff;
+        color: #004085;
+      }
+
+      .event-logout {
+        background-color: #f5c6cb;
+        color: #721c24;
+      }
+
+      .stats-card {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border: 2px solid #667eea30;
+      }
+
+      .stats-card h5 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .stats-card p {
+        color: #666;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+      }
+
+      .alert {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">🏢 AiSPRY Enterprise</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            {% if role == 'admin' %}
+              <li class="nav-item me-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_panel') }}">Admin Panel</a>
+              </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid py-4">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="row g-4">
+        <!-- Left Column: Main Content -->
+        <div class="col-lg-8">
+          <!-- Welcome Card -->
+          <div class="card welcome-card mb-4">
+            <div class="card-body">
+              <h4 class="card-title">👋 Welcome, {{ display_name }}</h4>
+              <p class="mb-2">
+                <span class="badge-role">{{ role|title }}</span>
+              </p>
+              <p class="text-white-50 mb-0">📧 {{ email }}</p>
+            </div>
+          </div>
+
+          <!-- Attendance Recording Card -->
+          <div class="card mb-4">
+            <div class="card-header">
+              📝 Record Attendance Event
+            </div>
+            <div class="card-body">
+              <form method="post" action="{{ url_for('record_attendance') }}">
+                <div class="mb-3">
+                  <label for="event" class="form-label">Event Type</label>
+                  <select id="event" name="event" class="form-select" required>
+                    <option value="">-- Select an event --</option>
+                    <option value="check-in">Check-in</option>
+                    <option value="check-out">Check-out</option>
+                    <option value="meeting-start">Meeting Start</option>
+                    <option value="meeting-end">Meeting End</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-success">
+                  ✅ Record Attendance
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Recent Attendance Table -->
+          <div class="card">
+            <div class="card-header">
+              📊 Recent Attendance Records
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>⏰ Timestamp</th>
+                      <th>👤 User</th>
+                      <th>🎯 Role</th>
+                      <th>📌 Event</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in attendance %}
+                      <tr>
+                        <td>
+                          <small class="text-muted">{{ row.timestamp[:19].replace('T', ' ') }}</small>
+                        </td>
+                        <td><strong>{{ row.username }}</strong></td>
+                        <td>
+                          <span class="badge bg-secondary">{{ row.role|title }}</span>
+                        </td>
+                        <td>
+                          <span class="event-badge event-{{ row.event|replace(' ', '-')|replace('_', '-') }}">
+                            {{ row.event|title }}
+                          </span>
+                        </td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                          <p>No attendance records yet. Start by recording an event!</p>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <div class="col-lg-4">
+          <!-- Stats Card -->
+          <div class="card mb-4">
+            <div class="card-header">
+              📈 Quick Stats
+            </div>
+            <div class="card-body">
+              <div class="stats-card mb-3">
+                <h5>{{ attendance|length }}</h5>
+                <p>Recent Events</p>
+              </div>
+              <div class="stats-card mb-3">
+                <h5>{{ role|title }}</h5>
+                <p>Your Role</p>
+              </div>
+              <div class="stats-card">
+                <h5>AiSPRY</h5>
+                <p>Enterprise System</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Information Card -->
+          <div class="card border-info">
+            <div class="card-header bg-info">
+              ℹ️ About Attendance Tracking
+            </div>
+            <div class="card-body">
+              <p class="card-text small">
+                This system automatically records your attendance events for compliance and reporting purposes. 
+                Each action is timestamped and stored securely.
+              </p>
+              <hr>
+              <p class="card-text small text-muted mb-0">
+                <strong>Tip:</strong> Use the dropdown menu above to select the type of event you want to record.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
